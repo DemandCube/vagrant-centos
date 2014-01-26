@@ -4,7 +4,7 @@ vagrant-centos
 Scripts to create a lean CentOS Vagrant box.
 
 Run:
-
+    cd PATH_TO/vagrant-centos
     ./setup
 
 and at the boot prompt press tab to gain access to the boot options.
@@ -15,6 +15,8 @@ Finally, run the last command that `setup` spits out (it's of the
 form `./cleanup && ...`). Congratulations! You have just created a
 Vagrant box.
 
+Your Vagrant box will be saved in a file like:
+    PATH_TO/vagrant-centos/boxes/centos65-x86_64-20140125.box
 
 Specification
 -------------
@@ -69,3 +71,8 @@ see the `ks.cfg` file and find the line:
     EMAIL=root
 
 and adjust accordingly.
+
+Contributors
+----------------
+Christopher Rawnsley
+Steve Morin
