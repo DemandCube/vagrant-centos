@@ -100,6 +100,11 @@ if [ ! $PING_RESPONSE -eq 0 ] ; then
     echo "Couldn't ping the IP so you should look it up manually"
 fi 
 
+# If this directory doesn't exist the box won't be created
+if [ ! -d ./boxes ] ; then
+    mkdir boxes
+fi
+
 echo 'At the boot prompt, hit <TAB> and then type:'
 echo " ks=http://${IP}:8081"
 echo "When done typing will look like:"
