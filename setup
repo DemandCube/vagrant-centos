@@ -102,6 +102,8 @@ fi
 
 echo 'At the boot prompt, hit <TAB> and then type:'
 echo " ks=http://${IP}:8081"
+echo "When done typing will look like:"
+echo "> vmlinuz initrd=initrd.img ks=http://${IP}:8081"
 sh ./httpd.sh | nc -l 8081 >/dev/null
 
 echo When finished:
