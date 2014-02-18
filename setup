@@ -46,6 +46,7 @@ VBoxManage modifyvm ${NAME} \
     --bioslogodisplaytime 0 \
     --biosbootmenu disabled
 
+
 # Create a new file to serve a virtual 8GB disk
 VBoxManage createhd --filename "${HDD}" --size 8192
 # Swap is recommended to be double the size of RAM.
@@ -64,6 +65,8 @@ VBoxManage storageattach ${NAME} \
 # Specifies Guest Additions Manually
 VBoxManage storageattach ${NAME} \
     --storagectl SATA --port 3 --type dvddrive --medium "${GUESTADDITIONS}"
+# Enabling host I/O caching
+VBoxManage storagectl ${NAME} --name SATA --hostiocache on
 # Specifies Guest Additions Automatically
 # Supposed to work but doesn't
 # See: http://www.virtualbox.org/manual/ch08.html#vboxmanage-storageattach
