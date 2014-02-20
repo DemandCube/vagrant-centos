@@ -23,6 +23,14 @@ if [ ! -f "${GUESTADDITIONS}" ] ; then
 
 fi
 
+CENTOS_ISO_CHKSUM=`md5 -q ${INSTALLER_PATH}${INSTALLER_ISO}` 
+
+if [ ! "x$CENTOS_ISO_CHKSUM" == "x4a5fa01c81cc300f4729136e28ebe600" ] ; then
+	echo "Checksum of ISO failed to redownload and remove manually"
+	echo "Location: ${INSTALLER_PATH}${INSTALLER_ISO}"
+	exit 1
+fi
+
 
 # Create new vm named "$NAME"
 VBoxManage createvm --name ${NAME} --ostype ${TYPE} --register
@@ -93,13 +101,17 @@ if [ ! $PING_RESPONSE -eq 0 ] ; then
     echo "IP from NATNET variable not pingable"
     if [ `uname` == "Darwin" ] ; then
         echo "On a mac autoassigning"
-        IP=`ipconfig getifaddr en1`
+        IP=`ipconfig getifaddr en0`
+        echo "IP:'${IP}'"
     fi
 fi
 
-# Retesting might have auto assigned
-PING_RESPONSE=0
-ping -q -c 1 -W 2 ${IP} || PING_RESPONSE=1
+# only test if IP is not empty
+if [ ! "x" == "x${IP}" ]; then
+    # Retesting might have auto assigned
+    PING_RESPONSE=0
+    ping -q -c 1 -W 2 ${IP} || PING_RESPONSE=1
+fi
 
 # If response is 0 the IP is reachable so might be the right one
 if [ ! $PING_RESPONSE -eq 0 ] ; then
@@ -108,6 +120,7 @@ fi
 
 # If this directory doesn't exist the box won't be created
 if [ ! -d ./boxes ] ; then
+    echo "boxes directory doesn't exist, creating"
     mkdir boxes
 fi
 
