@@ -2,12 +2,37 @@
 
 . ./vars.sh
 
+DOWNLOAD_URL=${CENTOS_6_5_MINIMAL_URL}
+HDD_SIZE=8192 #8 gigs by default
+
+while getopts :hv:s: opt; do
+  case $opt in 
+    h)
+      echo "Usage: ./setup -v [64|65] -s [hdd size]"
+      exit
+      ;;
+    v)
+      if [ $OPTARG == 64 ] ; then
+        DOWNLOAD_URL=${CENTOS_6_4_MINIMAL_URL}
+      else 
+        DOWNLOAD_URL=${CENTOS_6_5_MINIMAL_URL}
+      fi
+      ;;
+    s)
+      HDD_SIZE=$OPTARG
+      ;;
+  esac
+done
+
+echo "HDD_SIZE : $HDD_SIZE"
+echo "DOWNLOAD_URL : $DOWNLOAD_URL"
+
 # Check if the CentOS ISO is found, if not tries to download it 
 if [ ! -f "${INSTALLER_PATH}${INSTALLER_ISO}" ] ; then
     if [ ! -d "${INSTALLER_PATH}" ] ; then
         mkdir -p ${INSTALLER_PATH}
     fi
-    curl -Lk ${CENTOS_6_5_MINIMAL_URL} -o "${INSTALLER_PATH}${INSTALLER_ISO}"
+    curl -Lk ${DOWNLOAD_URL} -o "${INSTALLER_PATH}${INSTALLER_ISO}"
 fi
 
 # Check if the VirtualBox Additions ISO is found
@@ -46,7 +71,7 @@ VBoxManage modifyvm ${NAME} \
     --bioslogodisplaytime 0 \
     --biosbootmenu disabled
 
-VBoxManage createhd --filename "${HDD}" --size 8192
+VBoxManage createhd --filename "${HDD}" --size ${HDD_SIZE} 
 # Swap is recommended to be double the size of RAM.
 VBoxManage createhd --filename "${HDD_SWAP}" --size 1226
 
