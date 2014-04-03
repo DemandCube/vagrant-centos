@@ -1,7 +1,5 @@
-NAME=centos64-x86_64
 TYPE=RedHat_64
 INSTALLER_PATH="./isos/"
-INSTALLER_ISO="CentOS-6.4-x86_64-minimal.iso"
 # Default Mac Location of Guest Additions
 GUESTADDITIONS_MAC=/Applications/VirtualBox.app/Contents/MacOS/VBoxGuestAdditions.iso
 GUESTADDITIONS="./isos/VBoxGuestAdditions-4.3.6.iso"

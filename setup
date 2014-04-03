@@ -4,6 +4,8 @@
 
 DOWNLOAD_URL=${CENTOS_6_5_MINIMAL_URL}
 HDD_SIZE=8192 #8 gigs by default
+INSTALLER_ISO=
+NAME=
 
 while getopts :hv:s: opt; do
   case $opt in 
@@ -14,8 +16,15 @@ while getopts :hv:s: opt; do
     v)
       if [ $OPTARG == 64 ] ; then
         DOWNLOAD_URL=${CENTOS_6_4_MINIMAL_URL}
-      else 
+        NAME="centos64-x86_64"
+        INSTALLER_ISO="CentOS-6.4-x86_64-minimal.iso"
+      elif [ $OPTARG = 65 ] ; then
         DOWNLOAD_URL=${CENTOS_6_5_MINIMAL_URL}
+        NAME="centos65-x86_64"
+        INSTALLER_ISO="CentOS-6.5-x86_64-minimal.iso"
+      else
+        echo "Can't support version: $OPTARG. Must be either 64 or 65"
+        exit
       fi
       ;;
     s)
@@ -26,6 +35,8 @@ done
 
 echo "HDD_SIZE : $HDD_SIZE"
 echo "DOWNLOAD_URL : $DOWNLOAD_URL"
+echo "NAME: $NAME"
+echo "NAME=$NAME" > dynamic_vars.sh
 
 # Check if the CentOS ISO is found, if not tries to download it 
 if [ ! -f "${INSTALLER_PATH}${INSTALLER_ISO}" ] ; then
@@ -46,7 +57,6 @@ if [ ! -f "${GUESTADDITIONS}" ] ; then
     fi
 
 fi
-
 
 
 VBoxManage createvm --name ${NAME} --ostype ${TYPE} --register
@@ -95,35 +105,7 @@ VBoxManage storageattach ${NAME} \
 #    --storagectl SATA --port 3 --medium additions
 VBoxManage startvm ${NAME} --type gui
 
-# This only really caters for the common case. If you have problems, please
-# discover your host's IP address and adjust accordingly.
-IP=`echo ${NATNET} | sed -nE 's/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}).*/\1/p'`
-IP=${IP}".3"
-
-
-# Tring to ping the IP if not reachable set error
-PING_RESPONSE=0
-ping -q -c 1 -W 2 ${IP} || PING_RESPONSE=1
-
-
-# If response is 0 the IP is reachable so might be the right one
-if [ ! $PING_RESPONSE -eq 0 ] ; then
-    # If on a mac look up your IP address
-    echo "IP from NATNET variable not pingable"
-    if [ `uname` == "Darwin" ] ; then
-        echo "On a mac autoassigning"
-        IP=`ipconfig getifaddr en1`
-    fi
-fi
-
-# Retesting might have auto assigned
-PING_RESPONSE=0
-ping -q -c 1 -W 2 ${IP} || PING_RESPONSE=1
-
-# If response is 0 the IP is reachable so might be the right one
-if [ ! $PING_RESPONSE -eq 0 ] ; then
-    echo "Couldn't ping the IP so you should look it up manually"
-fi 
+IP=10.0.2.2
 
 # If this directory doesn't exist the box won't be created
 if [ ! -d ./boxes ] ; then
