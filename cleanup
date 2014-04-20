@@ -1,6 +1,7 @@
 #!/bin/sh
 
 . ./vars.sh
+. ./dynamic_vars.sh
 
 set -x
 
@@ -16,6 +17,9 @@ VBoxManage storagectl ${NAME} \
 VBoxManage storageattach ${NAME} \
     --storagectl SATA --port 0 --type hdd \
     --medium "${HDD}"
+
 VBoxManage storageattach ${NAME} \
     --storagectl SATA --port 1 --type hdd \
     --medium "${HDD_SWAP}"
+
+VBoxManage unregistervm ${NAME} --delete
