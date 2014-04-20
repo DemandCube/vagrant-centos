@@ -1,11 +1,11 @@
 #!/bin/sh -e
-
-. ./vars.sh
-
-DOWNLOAD_URL=${CENTOS_6_5_MINIMAL_URL}
+CENTOS_6_4_MINIMAL_URL=http://mirror.symnds.com/distributions/CentOS-vault/6.4/isos/x86_64/CentOS-6.4-x86_64-minimal.iso
+CENTOS_6_5_MINIMAL_URL=http://mirror.rackspace.com/CentOS/6.5/isos/x86_64/CentOS-6.5-x86_64-minimal.iso
 HDD_SIZE=8192 #8 gigs by default
 INSTALLER_ISO=
+DOWNLOAD_URL=
 NAME=
+
 
 while getopts :hv:s: opt; do
   case $opt in 
@@ -37,6 +37,10 @@ echo "HDD_SIZE : $HDD_SIZE"
 echo "DOWNLOAD_URL : $DOWNLOAD_URL"
 echo "NAME: $NAME"
 echo "NAME=$NAME" > dynamic_vars.sh
+echo "HDD=$HOME/VirtualBox\ VMs/$NAME/main.vdi" >> dynamic_vars.sh
+echo "HDD_SWAP=$HOME/VirtualBox\ VMs/$NAME/swap.vdi" >> dynamic_vars.sh
+
+. ./vars.sh
 
 # Check if the CentOS ISO is found, if not tries to download it 
 if [ ! -f "${INSTALLER_PATH}${INSTALLER_ISO}" ] ; then
@@ -119,4 +123,4 @@ echo "> vmlinuz initrd=initrd.img ks=http://${IP}:8081"
 sh ./httpd.sh | nc -l 8081 >/dev/null
 
 echo When finished:
-echo "./cleanup && vagrant package --base ${NAME} --output boxes/${NAME}-`date +%Y%m%d`.box"
+echo "./cleanup && vagrant package --base ${NAME} --output boxes/${NAME}-`date +%Y%m%d`.box && VBoxManage unregistervm ${NAME} --delete"
