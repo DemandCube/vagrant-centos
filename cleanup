@@ -1,7 +1,9 @@
 #!/bin/sh
 
-. ./vars.sh
+# vars.sh is dependent on dynamic_vars.sh, don't change this order
 . ./dynamic_vars.sh
+. ./vars.sh
+# do not change the order of vars.sh and dynamic_vars.sh
 
 set -x
 
@@ -21,5 +23,3 @@ VBoxManage storageattach ${NAME} \
 VBoxManage storageattach ${NAME} \
     --storagectl SATA --port 1 --type hdd \
     --medium "${HDD_SWAP}"
-
-VBoxManage unregistervm ${NAME} --delete
