@@ -8,12 +8,13 @@ NAME=
 
 # control variables
 NO_ARGS=0 
-E_OPTERROR=85
+E_OPTERROR=85 # non-reserved code
 OPT_EXIST=0
 
 # print usage
 usage(){
   echo "Usage: ./setup -v [64|65] -s [hdd size]"
+  exit $E_OPTERROR
 }
 
 
@@ -21,8 +22,7 @@ while getopts :hv:s: opt; do
   OPT_EXIST=1
   case $opt in 
     h)
-       usage
-       exit $E_OPTERROR
+       usage       
        ;;
     v)
       if [ $OPTARG == 64 ] ; then
@@ -43,19 +43,18 @@ while getopts :hv:s: opt; do
       ;;
     \? )    
         echo "Invalid option: -$OPTARG" >&2
-        usage
-        exit $E_OPTERROR;;
+        usage 
+        ;;        
     * ) 
         echo "Option -$OPTARG requires an argument" >&2
         usage
-        exit $E_OPTERROR;; 
+        ;;        
   esac
 done
 
 # check if there wasn't any option
 if [ $OPT_EXIST -eq $NO_ARGS ]; then
-   usage 
-   exit $E_OPTERROR
+   usage    
 fi
 
 echo "HDD_SIZE : $HDD_SIZE"
