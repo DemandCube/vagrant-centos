@@ -1,4 +1,44 @@
 #!/bin/sh -e
+CENTOS_6_4_MINIMAL_URL=http://mirror.symnds.com/distributions/CentOS-vault/6.4/isos/x86_64/CentOS-6.4-x86_64-minimal.iso
+CENTOS_6_5_MINIMAL_URL=http://mirror.rackspace.com/CentOS/6.5/isos/x86_64/CentOS-6.5-x86_64-minimal.iso
+HDD_SIZE=8192 #8 gigs by default
+INSTALLER_ISO=
+DOWNLOAD_URL=
+NAME=
+
+
+while getopts :hv:s: opt; do
+  case $opt in 
+    h)
+      echo "Usage: ./setup -v [64|65] -s [hdd size]"
+      exit
+      ;;
+    v)
+      if [ $OPTARG == 64 ] ; then
+        DOWNLOAD_URL=${CENTOS_6_4_MINIMAL_URL}
+        NAME="centos64-x86_64"
+        INSTALLER_ISO="CentOS-6.4-x86_64-minimal.iso"
+      elif [ $OPTARG = 65 ] ; then
+        DOWNLOAD_URL=${CENTOS_6_5_MINIMAL_URL}
+        NAME="centos65-x86_64"
+        INSTALLER_ISO="CentOS-6.5-x86_64-minimal.iso"
+      else
+        echo "Can't support version: $OPTARG. Must be either 64 or 65"
+        exit
+      fi
+      ;;
+    s)
+      HDD_SIZE=$OPTARG
+      ;;
+  esac
+done
+
+echo "HDD_SIZE : $HDD_SIZE"
+echo "DOWNLOAD_URL : $DOWNLOAD_URL"
+echo "NAME: $NAME"
+echo "NAME=$NAME" > dynamic_vars.sh
+echo "HDD=$HOME/VirtualBox\ VMs/$NAME/main.vdi" >> dynamic_vars.sh
+echo "HDD_SWAP=$HOME/VirtualBox\ VMs/$NAME/swap.vdi" >> dynamic_vars.sh
 
 . ./vars.sh
 
@@ -7,7 +47,7 @@ if [ ! -f "${INSTALLER_PATH}${INSTALLER_ISO}" ] ; then
     if [ ! -d "${INSTALLER_PATH}" ] ; then
         mkdir -p ${INSTALLER_PATH}
     fi
-    curl -Lk ${CENTOS_6_5_MINIMAL_URL} -o "${INSTALLER_PATH}${INSTALLER_ISO}"
+    curl -Lk ${DOWNLOAD_URL} -o "${INSTALLER_PATH}${INSTALLER_ISO}"
 fi
 
 # Check if the VirtualBox Additions ISO is found
@@ -21,7 +61,6 @@ if [ ! -f "${GUESTADDITIONS}" ] ; then
     fi
 
 fi
-
 
 
 VBoxManage createvm --name ${NAME} --ostype ${TYPE} --register
@@ -46,7 +85,7 @@ VBoxManage modifyvm ${NAME} \
     --bioslogodisplaytime 0 \
     --biosbootmenu disabled
 
-VBoxManage createhd --filename "${HDD}" --size 8192
+VBoxManage createhd --filename "${HDD}" --size ${HDD_SIZE} 
 # Swap is recommended to be double the size of RAM.
 VBoxManage createhd --filename "${HDD_SWAP}" --size 1226
 
@@ -70,35 +109,7 @@ VBoxManage storageattach ${NAME} \
 #    --storagectl SATA --port 3 --medium additions
 VBoxManage startvm ${NAME} --type gui
 
-# This only really caters for the common case. If you have problems, please
-# discover your host's IP address and adjust accordingly.
-IP=`echo ${NATNET} | sed -nE 's/^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}).*/\1/p'`
-IP=${IP}".3"
-
-
-# Tring to ping the IP if not reachable set error
-PING_RESPONSE=0
-ping -q -c 1 -W 2 ${IP} || PING_RESPONSE=1
-
-
-# If response is 0 the IP is reachable so might be the right one
-if [ ! $PING_RESPONSE -eq 0 ] ; then
-    # If on a mac look up your IP address
-    echo "IP from NATNET variable not pingable"
-    if [ `uname` == "Darwin" ] ; then
-        echo "On a mac autoassigning"
-        IP=`ipconfig getifaddr en1`
-    fi
-fi
-
-# Retesting might have auto assigned
-PING_RESPONSE=0
-ping -q -c 1 -W 2 ${IP} || PING_RESPONSE=1
-
-# If response is 0 the IP is reachable so might be the right one
-if [ ! $PING_RESPONSE -eq 0 ] ; then
-    echo "Couldn't ping the IP so you should look it up manually"
-fi 
+IP=10.0.2.2
 
 # If this directory doesn't exist the box won't be created
 if [ ! -d ./boxes ] ; then
@@ -112,4 +123,4 @@ echo "> vmlinuz initrd=initrd.img ks=http://${IP}:8081"
 sh ./httpd.sh | nc -l 8081 >/dev/null
 
 echo When finished:
-echo "./cleanup && vagrant package --base ${NAME} --output boxes/${NAME}-`date +%Y%m%d`.box"
+echo "./cleanup && vagrant package --base ${NAME} --output boxes/${NAME}-`date +%Y%m%d`.box && VBoxManage unregistervm ${NAME} --delete"
