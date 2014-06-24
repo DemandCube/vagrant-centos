@@ -6,13 +6,24 @@ INSTALLER_ISO=
 DOWNLOAD_URL=
 NAME=
 
+# control variables
+NO_ARGS=0 
+E_OPTERROR=85 # non-reserved code
+OPT_EXIST=0
+
+# print usage
+usage(){
+  echo "Usage: ./setup -v [64|65] -s [hdd size]"
+  exit $E_OPTERROR
+}
+
 
 while getopts :hv:s: opt; do
+  OPT_EXIST=1
   case $opt in 
     h)
-      echo "Usage: ./setup -v [64|65] -s [hdd size]"
-      exit
-      ;;
+       usage       
+       ;;
     v)
       if [ $OPTARG == 64 ] ; then
         DOWNLOAD_URL=${CENTOS_6_4_MINIMAL_URL}
@@ -30,8 +41,21 @@ while getopts :hv:s: opt; do
     s)
       HDD_SIZE=$OPTARG
       ;;
+    \? )    
+        echo "Invalid option: -$OPTARG" >&2
+        usage 
+        ;;        
+    * ) 
+        echo "Option -$OPTARG requires an argument" >&2
+        usage
+        ;;        
   esac
 done
+
+# check if there wasn't any option
+if [ $OPT_EXIST -eq $NO_ARGS ]; then
+   usage    
+fi
 
 echo "HDD_SIZE : $HDD_SIZE"
 echo "DOWNLOAD_URL : $DOWNLOAD_URL"
